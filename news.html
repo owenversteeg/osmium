@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title>osmium news</title>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+
+		<link href="http://mincss.com/entireframework.min.css" rel="stylesheet" type="text/css">
+
+		<style>
+			.header {
+				background: #D62503;
+				color: white;
+				padding: 10px 20px;
+			}
+
+			.header h1 {
+				margin: 0;
+			}
+
+			.story {
+				padding: 20px 20px;
+				background: #fff;
+			}
+
+			.story h2, .popover h2 {
+				margin: 0;
+			}
+
+			.story:hover {
+				background: #ddd;
+			}
+
+			hr {
+				margin: 0;
+			}
+
+			.smallcaps {
+				font-size: .4em;
+				font-style: italic;
+			}
+
+			#popover {
+				position: fixed;
+				top: 0;
+				left: 0;
+				height: 100%;
+				width: 100%;
+				background: #ddd;
+				padding: 20px;
+				box-sizing: border-box;
+				overflow: auto;
+
+				display: none;
+			}
+
+			#closeButton {
+				position: fixed;
+				display: inline-block;
+				top: -10px;
+				right: -16px;
+				background: #000;
+				width: 40px;
+				height: 40px;
+				color: white;
+				padding: 9px 10px 9px 12px;
+				font-size: 30em;
+				z-index: -10;
+				border-radius: 10px;
+			}
+
+			body, html {
+				overflow-x: auto;
+			}
+
+			#popover a {
+				display: none;
+			}
+
+			h2 {
+				font-size: 25em;
+			}
+
+			h1 {
+				font-size: 48em;
+			}
+
+			body {
+				font-size: 1px;
+			}
+
+			@media (min-width: 1000px) {
+				body {
+					font-size: 1.3px;
+				}
+			}
+
+			p {
+				font-size: 20em;
+			}
+		</style>
+	</head>
+	<body>
+<div class="close" id="closeButton" onclick="closeButton.style.zIndex = '-10'; popover.style.display = 'none';">
+			✕
+		</div>
+
+		<div class="header">
+			<h1>News <!--<span class="smallcaps">In partnership with Time Magazine</span>!--></h1>
+		</div>
+		<div class="stories" id="storiesDiv">
+		</div>
+
+		<div class="popover" id="popover">
+
+		</div>
+
+		
+	</body>
+</html>
+
+<script>
+var stories = [];
+var storiesDivHTML = '';
+
+function refreshNews() {
+	$.get("http://guarded-stream-7018.herokuapp.com/http://feeds.feedburner.com/time/topstories?format=xml", function (data) {
+		$(data).find("item").each(function () { 
+			// or "item" or whatever suits your feed
+			var el = $(this);
+
+			console.log("------------------------");
+			
+			var title = el.find("title").first().text();
+			console.log("title      : " + title);
+
+			var description = el.find("description").text();
+
+			console.log("description: " + description);
+
+			var content = el.find("encoded").text();
+			console.log("content     : " + content);
+
+			var story = {title: title, description: description, content: content};
+
+			stories.push(story)
+		});
+
+		for (var i=0; i<stories.length; i++) {
+			var tooShort = false;
+			if (stories[i].content.split(' ').length > 300) tooShort = true;
+			if (stories[i].content.toLowerCase().indexOf('read the rest') !== -1) tooShort = true;
+
+			if (!tooShort) storiesDivHTML += '<div class="story" onclick="displayStory('+i+')"><h2>' + stories[i].title + '</h2><p>' + stories[i].description + '</div><hr>';
+		}
+
+		storiesDiv.innerHTML = storiesDivHTML;
+	});
+}
+
+refreshNews()
+
+function displayStory(index) {
+	popoverHTML = '<h2>' + stories[index].title + '</h2>'
+	popoverHTML += stories[index].content
+	popover.innerHTML = popoverHTML
+	popover.style.display = "block";
+	closeButton.style.zIndex = '100';
+}
+</script>
